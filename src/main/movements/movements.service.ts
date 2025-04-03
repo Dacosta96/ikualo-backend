@@ -115,7 +115,7 @@ export class MovementsService {
     // Buscar los movimientos asociados al userId (convertido explícitamente en ObjectId)
     return this.movementEntityModel
       .find({ userId: new Types.ObjectId(user._id as string) })
-      .sort({ created_at: -1 })
+      .sort({ date: -1 })
       .exec();
   }
 
