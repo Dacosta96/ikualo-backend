@@ -9,4 +9,9 @@ export class AppController {
   ping(): string {
     return 'pong';
   }
+
+  @Get()
+  getHello(): string {
+    return 'Hello World!';
+  }
 }
