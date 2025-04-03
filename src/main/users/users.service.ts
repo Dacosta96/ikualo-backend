@@ -21,6 +21,24 @@ export class UsersService {
     });
   }
 
+  async getAllUsers(): Promise<UserEntity[]> {
+    try {
+      return await this.userEntityModel.find();
+    } catch (err) {
+      console.error('Error fetching users:', err);
+      throw new Error('Error fetching users');
+    }
+  }
+
+  async getUserByEmail(email: string): Promise<UserEntity | null> {
+    try {
+      return await this.userEntityModel.findOne({ email });
+    } catch (err) {
+      console.error(`Error fetching user by email (${email}):`, err);
+      throw new Error('Error fetching user');
+    }
+  }
+
   async createWithClerkUser(userCreateDTO: UserCreateDTO): Promise<UserEntity> {
     try {
       const { firstName, lastName, email, password } = userCreateDTO;

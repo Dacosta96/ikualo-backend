@@ -8,13 +8,7 @@ import {
   UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
-import {
-  ApiOperation,
-  ApiParam,
-  ApiQuery,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { MovementsService } from './movements.service';
 import { MovementCreateDTO } from '../dtos/movement.dto';
 import { MovementEntity } from 'src/database/entities/movement.entity';
@@ -65,11 +59,12 @@ export class MovementsController {
     return this.movementsService.remove(id);
   }
 
-  @ApiOperation({ summary: 'Get movements by user ID' })
-  @ApiQuery({ name: 'userId', description: 'User ID' })
+  @ApiOperation({ summary: 'Get movements by user Email' })
+  @ApiParam({ name: 'emailUser', description: 'User Email', type: 'string' }) // Usa @ApiParam en lugar de @ApiQuery
   @ApiResponse({ status: 200, description: 'Return movements for the user' })
-  @Get('user/:userId')
-  findByUser(@Param('userId') userId: string): Promise<MovementEntity[]> {
-    return this.movementsService.findByUser(userId);
+  @Get('user/:emailUser')
+  findByUser(@Param('emailUser') emailUser: string): Promise<MovementEntity[]> {
+    console.log('Email User:', emailUser);
+    return this.movementsService.findByUser(emailUser);
   }
 }

@@ -1,4 +1,11 @@
-import { Body, Controller, Get, Post, ValidationPipe } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Query,
+  ValidationPipe,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UserCreateDTO } from '../dtos/user.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -8,12 +15,12 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Get('/ping')
-  ping() {
-    return {
-      messge: 'Service Users is running',
-    };
-  }
+  // @Get('/ping')
+  // ping() {
+  //   return {
+  //     messge: 'Service Users is running',
+  //   };
+  // }
 
   @ApiOperation({ summary: 'Create a new user with Clerk' })
   @ApiResponse({ status: 201, description: 'User created successfully' })
@@ -23,5 +30,20 @@ export class UsersController {
     @Body(new ValidationPipe()) userCreateDTO: UserCreateDTO,
   ) {
     return this.usersService.createWithClerkUser(userCreateDTO);
+  }
+
+  @ApiOperation({ summary: 'Get all users' })
+  @ApiResponse({ status: 200, description: 'List of users' })
+  @Get()
+  getAllUsers() {
+    return this.usersService.getAllUsers();
+  }
+
+  @ApiOperation({ summary: 'Get a user by email' })
+  @ApiResponse({ status: 200, description: 'User found' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  @Get('/by-email')
+  getUserByEmail(@Query('email') email: string) {
+    return this.usersService.getUserByEmail(email);
   }
 }

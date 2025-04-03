@@ -1,10 +1,6 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { MovementEntity } from 'src/database/entities/movement.entity';
 import { MovementCreateDTO } from '../dtos/movement.dto';
 import { UserEntity } from 'src/database/entities/user.entity';
@@ -20,15 +16,27 @@ export class MovementsService {
 
   async create(movementCreateDTO: MovementCreateDTO): Promise<MovementEntity> {
     // Validate user exists
-    const user = await this.userEntityModel.findById(movementCreateDTO.user);
+    const user = await this.userEntityModel.findOne({
+      email: movementCreateDTO.emailUser,
+    });
+    console.log('User:', user);
+
     if (!user) {
       throw new NotFoundException(
-        `User with ID ${movementCreateDTO.user} not found`,
+        `User with ID ${movementCreateDTO.emailUser} not found`,
       );
     }
 
     // Create the movement
-    const movement = await this.movementEntityModel.create(movementCreateDTO);
+    const movement = await this.movementEntityModel.create({
+      userId: new Types.ObjectId(user?._id as string),
+      type: movementCreateDTO.type,
+      amount: movementCreateDTO.amount,
+      description: movementCreateDTO.description || '',
+      date: movementCreateDTO.date
+        ? new Date(movementCreateDTO.date)
+        : new Date(),
+    });
 
     // Update user capital based on movement type
     const amount = movementCreateDTO.amount;
@@ -36,9 +44,7 @@ export class MovementsService {
       user.capital += amount;
     } else if (movementCreateDTO.type === 'expense') {
       // Check if user has enough capital
-      if (user.capital < amount) {
-        throw new BadRequestException('Insufficient capital for this expense');
-      }
+
       user.capital -= amount;
     }
 
@@ -70,10 +76,10 @@ export class MovementsService {
     }
 
     // Get the user
-    const user = await this.userEntityModel.findById(movement.user).exec();
+    const user = await this.userEntityModel.findById(movement.userId).exec();
     if (!user) {
       throw new NotFoundException(
-        `User with ID ${movement.user.toString()} not found`,
+        `User with ID ${movement.userId.toString()} not found`,
       );
     }
 
@@ -95,7 +101,20 @@ export class MovementsService {
     return movement;
   }
 
-  async findByUser(userId: string): Promise<MovementEntity[]> {
-    return this.movementEntityModel.find({ user: userId }).exec();
+  async findByUser(emailUser: string): Promise<MovementEntity[]> {
+    // Buscar el usuario por email
+    console.log('Email User:', emailUser);
+    const user = await this.userEntityModel.findOne({ email: emailUser });
+    console.log('User:', user);
+
+    // Verificar si el usuario existe
+    if (!user) {
+      throw new Error('Usuario no encontrado');
+    }
+
+    // Buscar los movimientos asociados al userId (convertido explícitamente en ObjectId)
+    return this.movementEntityModel
+      .find({ userId: new Types.ObjectId(user._id as string) })
+      .exec();
   }
 }

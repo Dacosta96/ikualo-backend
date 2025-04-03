@@ -8,7 +8,7 @@ import { Document, Types } from 'mongoose';
 })
 export class MovementEntity extends Document {
   @Prop({ type: Types.ObjectId, ref: 'UserEntity', required: true })
-  user: Types.ObjectId;
+  userId: Types.ObjectId;
 
   @Prop({ required: true, enum: ['income', 'expense'] })
   type: 'income' | 'expense';

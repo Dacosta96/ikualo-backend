@@ -9,9 +9,9 @@ import { Types } from 'mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class MovementCreateDTO {
-  @ApiProperty({ description: 'User ID associated with the movement' })
-  @IsNotEmpty()
-  user: string;
+  // @ApiProperty({ description: 'User ID associated with the movement' })
+  // @IsOptional()
+  // userId?: string;
 
   @ApiProperty({
     description: 'Type of movement',
@@ -30,6 +30,10 @@ export class MovementCreateDTO {
   @ApiProperty({ description: 'Description of the movement', required: false })
   @IsOptional()
   description?: string;
+
+  @ApiProperty({ description: 'Email User', required: false })
+  @IsNotEmpty()
+  emailUser: string;
 
   @ApiProperty({
     description: 'Date of the movement',
