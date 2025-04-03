@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { MovementEntity } from 'src/database/entities/movement.entity';
-import { MovementCreateDTO } from '../dtos/movement.dto';
+import { MovementCreateDTO, MovementUpdateDTO } from '../dtos/movement.dto';
 import { UserEntity } from 'src/database/entities/user.entity';
 
 @Injectable()
@@ -115,6 +115,53 @@ export class MovementsService {
     // Buscar los movimientos asociados al userId (convertido explícitamente en ObjectId)
     return this.movementEntityModel
       .find({ userId: new Types.ObjectId(user._id as string) })
+      .sort({ created_at: -1 })
       .exec();
+  }
+
+  async update(movementUpdateDTO: MovementUpdateDTO): Promise<MovementEntity> {
+    const { _id, type, amount, description, date } = movementUpdateDTO;
+
+    // Buscar el movimiento existente
+    const movement = await this.movementEntityModel.findById(_id);
+    if (!movement) {
+      throw new NotFoundException(`Movement with ID ${_id} not found`);
+    }
+
+    // Buscar al usuario asociado
+    const user = await this.userEntityModel.findById(movement.userId);
+    if (!user) {
+      throw new NotFoundException(
+        `User with ID ${movement.userId.toString()} not found`,
+      );
+    }
+
+    // Revertir el impacto del movimiento anterior en el capital del usuario
+    if (movement.type === 'income') {
+      user.capital -= movement.amount;
+    } else if (movement.type === 'expense') {
+      user.capital += movement.amount;
+    }
+
+    // Aplicar los nuevos valores si están presentes en DTO
+    if (type) movement.type = type;
+    if (amount !== undefined) movement.amount = amount;
+    if (description !== undefined) movement.description = description;
+    if (date) movement.date = new Date(date);
+
+    // Aplicar el nuevo impacto en el capital del usuario
+    if (movement.type === 'income') {
+      user.capital += movement.amount;
+    } else if (movement.type === 'expense') {
+      user.capital -= movement.amount;
+    }
+
+    // Guardar cambios en la base de datos
+    await this.userEntityModel.findByIdAndUpdate(user._id, {
+      capital: user.capital,
+    });
+    await movement.save();
+
+    return movement;
   }
 }

@@ -5,7 +5,6 @@ import {
   IsNumber,
   IsDateString,
 } from 'class-validator';
-import { Types } from 'mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class MovementCreateDTO {
@@ -81,11 +80,4 @@ export class MovementUpdateDTO {
   @IsOptional()
   @IsDateString()
   date?: string;
-
-  @ApiProperty({
-    description: 'User ID associated with the movement',
-    required: false,
-  })
-  @IsOptional()
-  user?: Types.ObjectId;
 }

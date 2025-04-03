@@ -5,12 +5,13 @@ import {
   Get,
   Param,
   Post,
+  Put,
   UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { MovementsService } from './movements.service';
-import { MovementCreateDTO } from '../dtos/movement.dto';
+import { MovementCreateDTO, MovementUpdateDTO } from '../dtos/movement.dto';
 import { MovementEntity } from 'src/database/entities/movement.entity';
 import { ClerkAuthGuard } from 'src/common/clerk-auth.guard';
 
@@ -66,5 +67,15 @@ export class MovementsController {
   findByUser(@Param('emailUser') emailUser: string): Promise<MovementEntity[]> {
     console.log('Email User:', emailUser);
     return this.movementsService.findByUser(emailUser);
+  }
+
+  @ApiOperation({ summary: 'Update an existing movement' })
+  @ApiResponse({ status: 200, description: 'Movement updated successfully' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @Put()
+  update(
+    @Body(new ValidationPipe()) movementUpdateDTO: MovementUpdateDTO,
+  ): Promise<MovementEntity> {
+    return this.movementsService.update(movementUpdateDTO);
   }
 }
